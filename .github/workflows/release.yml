@@ -1,0 +1,145 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  release:
+    types: [prereleased]
+  push:
+    branches:
+      - main
+      - dev*
+      - feat*
+      - fix*
+      - chore*
+      - test*
+    paths:
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+      - ".github/workflows/*.yml"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+      - ".github/workflows/*.yml"
+jobs:
+  build:
+    strategy:
+      matrix:
+        # Include amd64 on all platforms.
+        goos: [windows, freebsd, openbsd, linux, dragonfly, darwin]
+        goarch: [amd64, 386]
+        exclude:
+          # Exclude i386 on darwin and dragonfly.
+          - goarch: 386
+            goos: dragonfly
+          - goarch: 386
+            goos: darwin
+        include:
+          # BEGIN Linux ARM 5 6 7
+          - goos: linux
+            goarch: arm
+            goarm: 7
+          - goos: linux
+            goarch: arm
+            goarm: 6
+          - goos: linux
+            goarch: arm
+            goarm: 5
+          # END Linux ARM 5 6 7
+          # Windows ARM 7
+          - goos: windows
+            goarch: arm
+            goarm: 7
+          # BEGIN Other architectures
+          - goos: darwin
+            goarch: arm64
+          - goos: linux
+            goarch: arm64
+          - goos: linux
+            goarch: riscv64
+          - goos: windows
+            goarch: arm64
+          # BEGIN MIPS
+          - goos: linux
+            goarch: mips64
+          - goos: linux
+            goarch: mips64le
+          - goos: linux
+            goarch: mipsle
+          - goos: linux
+            goarch: mips
+          # END MIPS
+          # BEGIN Android
+          - goos: android
+            goarch: arm64
+          # END Android
+          # END Other architectures
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    env:
+      GOOS: ${{ matrix.goos }}
+      GOARCH: ${{ matrix.goarch }}
+      GOARM: ${{ matrix.goarm }}
+      CGO_ENABLED: 0
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@v2
+
+      - name: Show workflow information
+        id: get_filename
+        run: |
+          export _NAME=$(jq ".[\"$GOOS-$GOARCH$GOARM\"].friendlyName" -r < release/friendly-filenames.json)
+          echo "GOOS: $GOOS, GOARCH: $GOARCH, GOARM: $GOARM, RELEASE_NAME: $_NAME"
+          echo "::set-output name=ASSET_NAME::$_NAME"
+          echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.17
+
+      - name: Get project dependencies
+        run: go mod download
+ 
+      - name: Build Naruse
+        run: |
+          mkdir -p build_assets
+          go build -v -o build_assets/naruse -trimpath -ldflags "-s -w -buildid=" ./main
+    
+      - name: Rename Windows Naruse
+        if: matrix.goos == 'windows'
+        run: |
+          cd ./build_assets || exit 1
+          mv naruse naruse.exe
+      
+      - name: Create ZIP archive
+        shell: bash
+        run: |
+          pushd build_assets || exit 1
+          zip -9vr ../naruse-$ASSET_NAME.zip .
+          popd || exit 1
+          FILE=./naruse-$ASSET_NAME.zip
+          DGST=$FILE.dgst
+          openssl dgst -md5    $FILE | sed 's/([^)]*)//g' >>$DGST
+          openssl dgst -sha1   $FILE | sed 's/([^)]*)//g' >>$DGST
+          openssl dgst -sha256 $FILE | sed 's/([^)]*)//g' >>$DGST
+          openssl dgst -sha512 $FILE | sed 's/([^)]*)//g' >>$DGST
+
+      - name: Upload ZIP file to Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: naruse-${{ steps.get_filename.outputs.ASSET_NAME }}.zip
+          path: naruse-${{ steps.get_filename.outputs.ASSET_NAME }}.zip
+
+      - name: Upload files to GitHub release
+        uses: svenstaro/upload-release-action@v2
+        if: github.event_name == 'release'
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
+          file: ./naruse-${{ steps.get_filename.outputs.ASSET_NAME }}.zip*
+          tag: ${{ github.ref }}
