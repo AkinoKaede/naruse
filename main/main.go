@@ -84,8 +84,16 @@ func main() {
 				Usage:    "Config file for Naruse.",
 				Required: true,
 			},
+			&cli.BoolFlag{
+				Name:  "suppress-timestamps",
+				Usage: "Do not include timestamps in log",
+			},
 		},
 		Action: func(c *cli.Context) error {
+			if c.Bool("suppress-timestamps") {
+				log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+			}
+
 			path := c.String("config")
 
 			go signalHandler(path)
