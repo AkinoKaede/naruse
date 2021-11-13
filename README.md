@@ -2,6 +2,12 @@
 
 A relay for VMess.
 
+## Credits
+
+- [Qv2ray/mmp-go](https://github.com/Qv2ray/mmp-go)
+- [v2fly/v2ray-core](https://github.com/v2fly/v2ray-core)
+- [database64128/tfo-go](https://github.com/database64128/tfo-go)
+
 ## License
 
 ```
