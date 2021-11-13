@@ -5,8 +5,8 @@ import (
 )
 
 type Account struct {
-	ID     protocol.ID
-	Server Server
+	ID     *protocol.ID
+	Server *Server
 }
 
 type Server struct {

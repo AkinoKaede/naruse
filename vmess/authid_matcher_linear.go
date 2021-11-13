@@ -31,3 +31,7 @@ func (a *AuthIDLinearMatcher) Match(authID [16]byte) (*Account, error) {
 	}
 	return nil, ErrNotFound
 }
+
+func NewAuthIDLinearMatcher() *AuthIDLinearMatcher {
+	return &AuthIDLinearMatcher{make(map[string]*AuthIDDecoderItem)}
+}
