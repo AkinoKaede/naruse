@@ -11,6 +11,7 @@ import (
 	"github.com/AkinoKaede/naruse/common/bytespool"
 	"github.com/AkinoKaede/naruse/vmess"
 
+	"github.com/v2fly/v2ray-core/v4/common/drain"
 	"github.com/v2fly/v2ray-core/v4/common/protocol"
 
 	"github.com/database64128/tfo-go"
@@ -57,6 +58,11 @@ func (d *Dispatcher) Listen() error {
 func (d *Dispatcher) handleConn(conn net.Conn) error {
 	defer conn.Close()
 
+	drainer, err := drain.NewBehaviorSeedLimitedDrainer(int64(d.Validator.GetBehaviorSeed()), 16+38, 3266, 64)
+	if err != nil {
+		return err
+	}
+
 	data := bytespool.Get(16)
 	defer bytespool.Put(data)
 
@@ -64,10 +70,11 @@ func (d *Dispatcher) handleConn(conn net.Conn) error {
 	if err != nil {
 		return fmt.Errorf("%s <-x-> %s handleConn ReadAtLeast error: %w", conn.RemoteAddr(), conn.LocalAddr(), err)
 	}
+	drainer.AcknowledgeReceive(n)
 
 	account, err := d.Validator.Get(data[:protocol.IDBytesLen])
 	if err != nil {
-		return nil //wip
+		return drain.WithError(drainer, conn, err)
 	}
 
 	dialer := tfo.Dialer{
