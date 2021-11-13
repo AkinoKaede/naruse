@@ -115,6 +115,10 @@ jobs:
         run: |
           cd ./build_assets || exit 1
           mv naruse naruse.exe
+
+      - name: Prepare package for Linux
+        if: matrix.goos == 'linux'
+        run: cp -rv ./release/config/systemd ./build_assets/
       
       - name: Create ZIP archive
         shell: bash

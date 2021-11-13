@@ -1,0 +1,8 @@
+[Unit]
+Description=Reload Naruse service
+Documentation=https://github.com/AkinoKaede/naruse
+After=naruse.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/systemctl reload naruse.service
