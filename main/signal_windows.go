@@ -4,4 +4,4 @@
 package main
 
 // not support windows
-func signalHandler(path string)
+func signalHandler(path string) {}
