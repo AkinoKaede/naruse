@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 
+	"github.com/AkinoKaede/naruse/common/bytespool"
 	"github.com/AkinoKaede/naruse/vmess"
 
 	"github.com/v2fly/v2ray-core/v4/common/protocol"
@@ -56,7 +57,8 @@ func (d *Dispatcher) Listen() error {
 func (d *Dispatcher) handleConn(conn net.Conn) error {
 	defer conn.Close()
 
-	data := make([]byte, 16)
+	data := bytespool.Get(16)
+	defer bytespool.Put(data)
 
 	n, err := io.ReadAtLeast(conn, data, protocol.IDBytesLen)
 	if err != nil {
