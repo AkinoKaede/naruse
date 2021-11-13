@@ -86,7 +86,11 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			config, err := config.BuildConfig(c.String("config"))
+			path := c.String("config")
+
+			go signalHandler(path)
+
+			config, err := config.BuildConfig(path)
 			if err != nil {
 				return err
 			}

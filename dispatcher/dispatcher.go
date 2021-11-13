@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"sync"
 
 	"github.com/AkinoKaede/naruse/common/bytespool"
 	"github.com/AkinoKaede/naruse/vmess"
@@ -18,7 +19,10 @@ import (
 )
 
 type Dispatcher struct {
-	Name        string
+	sync.RWMutex
+
+	listener net.Listener
+
 	ListenAddr  string
 	Port        int
 	TCPFastOpen bool
@@ -29,16 +33,17 @@ func (d *Dispatcher) Listen() error {
 	listenConfig := tfo.ListenConfig{
 		DisableTFO: !d.TCPFastOpen,
 	}
-	listener, err := listenConfig.Listen(context.Background(), "tcp", fmt.Sprintf("%s:%d", d.ListenAddr, d.Port))
+	var err error
+	d.listener, err = listenConfig.Listen(context.Background(), "tcp", fmt.Sprintf("%s:%d", d.ListenAddr, d.Port))
 	if err != nil {
 		return err
 	}
-	defer listener.Close()
+	defer d.listener.Close()
 
 	log.Printf("listen on %s:%v\n", d.ListenAddr, d.Port)
 
 	for {
-		conn, err := listener.Accept()
+		conn, err := d.listener.Accept()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
 				return nil
@@ -55,13 +60,26 @@ func (d *Dispatcher) Listen() error {
 	}
 }
 
+func (d *Dispatcher) Close() (err error) {
+	log.Printf("closed %s:%v\n", d.ListenAddr, d.Port)
+	return d.listener.Close()
+}
+
+func (d *Dispatcher) UpdateValidator(validator *vmess.Validator) {
+	d.Lock()
+	defer d.Unlock()
+	d.Validator = validator
+}
+
 func (d *Dispatcher) handleConn(conn net.Conn) error {
 	defer conn.Close()
 
+	d.RLock()
 	drainer, err := drain.NewBehaviorSeedLimitedDrainer(int64(d.Validator.GetBehaviorSeed()), 16+38, 3266, 64)
 	if err != nil {
 		return err
 	}
+	d.RUnlock()
 
 	data := bytespool.Get(16)
 	defer bytespool.Put(data)
@@ -72,7 +90,9 @@ func (d *Dispatcher) handleConn(conn net.Conn) error {
 	}
 	drainer.AcknowledgeReceive(n)
 
+	d.RLock()
 	account, err := d.Validator.Get(data[:protocol.IDBytesLen])
+	d.RUnlock()
 	if err != nil {
 		return drain.WithError(drainer, conn, err)
 	}
