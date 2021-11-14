@@ -1,4 +1,5 @@
 // copyied from https://github.com/Qv2ray/mmp-go/blob/main/infra/pool/pool.go
+// modified from https://github.com/nadoo/glider/blob/master/pool/buffer.go
 
 package bytespool
 

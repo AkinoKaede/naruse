@@ -48,7 +48,7 @@ func listenDispatcher(d *dispatcher.Dispatcher) error {
 
 func listenDispatchers(dispatchers []*dispatcher.Dispatcher) {
 	mPortDispatcher.Lock()
-	for i := range dispatchers {
+	for _, d := range dispatchers {
 		groupWG.Add(1)
 		go func(d *dispatcher.Dispatcher) {
 			err := listenDispatcher(d)
@@ -61,7 +61,7 @@ func listenDispatchers(dispatchers []*dispatcher.Dispatcher) {
 				mPortDispatcher.Unlock()
 			}
 			groupWG.Done()
-		}(dispatchers[i])
+		}(d)
 	}
 	mPortDispatcher.Unlock()
 }

@@ -3,13 +3,13 @@ module github.com/AkinoKaede/naruse
 go 1.17
 
 require (
+    github.com/database64128/tfo-go v1.0.0
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/v2fly/v2ray-core/v4 v4.43.0
 )
 
 require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
-	github.com/database64128/tfo-go v1.0.0
 	github.com/dgryski/go-metro v0.0.0-20200812162917-85c65e2d0165 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
