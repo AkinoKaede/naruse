@@ -18,6 +18,10 @@ import (
 	"github.com/database64128/tfo-go"
 )
 
+const (
+	BufferSize = 16 * 1024
+)
+
 type Dispatcher struct {
 	sync.RWMutex
 
@@ -81,7 +85,7 @@ func (d *Dispatcher) handleConn(conn net.Conn) error {
 	}
 	d.RUnlock()
 
-	data := bytespool.Get(16)
+	data := bytespool.Get(BufferSize)
 	defer bytespool.Put(data)
 
 	n, err := io.ReadAtLeast(conn, data, protocol.IDBytesLen)
