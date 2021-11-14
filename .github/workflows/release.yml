@@ -116,6 +116,9 @@ jobs:
           cd ./build_assets || exit 1
           mv naruse naruse.exe
 
+      - name: Prepare package
+        run: cp -v ./release/config/*.* ./build_assets
+
       - name: Prepare package for Linux
         if: matrix.goos == 'linux'
         run: cp -rv ./release/config/systemd ./build_assets/
