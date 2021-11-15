@@ -1,6 +1,6 @@
 [Unit]
 Description=Daily Reload Naruse service
-Documentation=https://github.com/AkinoKaede/naruse/
+Documentation=https://github.com/AkinoKaede/naruse
 After=naruse.service
 
 [Timer]
