@@ -2,10 +2,13 @@ package vmess
 
 import (
 	"hash/crc32"
+	"math"
+	"time"
 )
 
 type AuthIDLinearMatcher struct {
-	decoders map[string]*AuthIDDecoderItem
+	decoders       map[string]*AuthIDDecoderItem
+	timestampCheck bool
 }
 
 func (a *AuthIDLinearMatcher) AddUser(key [16]byte, account *Account) {
@@ -27,11 +30,15 @@ func (a *AuthIDLinearMatcher) Match(authID [16]byte) (*Account, error) {
 			continue
 		}
 
+		if a.timestampCheck && math.Abs(math.Abs(float64(t))-float64(time.Now().Unix())) > 120 {
+			continue
+		}
+
 		return v.account, nil
 	}
 	return nil, ErrNotFound
 }
 
-func NewAuthIDLinearMatcher() *AuthIDLinearMatcher {
-	return &AuthIDLinearMatcher{make(map[string]*AuthIDDecoderItem)}
+func NewAuthIDLinearMatcher(timestampCheck bool) *AuthIDLinearMatcher {
+	return &AuthIDLinearMatcher{make(map[string]*AuthIDDecoderItem), timestampCheck}
 }
