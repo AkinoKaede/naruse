@@ -9,8 +9,7 @@ import (
 )
 
 type AuthIDLinearMatcher struct {
-	decoders       map[string]*AuthIDDecoderItem
-	timestampCheck bool
+	decoders map[string]*AuthIDDecoderItem
 }
 
 func (a *AuthIDLinearMatcher) AddUser(key [16]byte, account *Account) {
@@ -32,7 +31,7 @@ func (a *AuthIDLinearMatcher) Match(authID [16]byte) (*Account, error) {
 			continue
 		}
 
-		if a.timestampCheck && math.Abs(math.Abs(float64(t))-float64(time.Now().Unix())) > 120 {
+		if math.Abs(math.Abs(float64(t))-float64(time.Now().Unix())) > 120 {
 			continue
 		}
 
@@ -41,12 +40,12 @@ func (a *AuthIDLinearMatcher) Match(authID [16]byte) (*Account, error) {
 	return nil, ErrNotFound
 }
 
-type AuthIDLinearMatcherWithReplayFilter struct {
+type AuthIDLinearMatcherWithAntiReplay struct {
 	AuthIDLinearMatcher
 	filter *antireplay.ReplayFilter
 }
 
-func (a *AuthIDLinearMatcherWithReplayFilter) Match(authID [16]byte) (*Account, error) {
+func (a *AuthIDLinearMatcherWithAntiReplay) Match(authID [16]byte) (*Account, error) {
 	for _, v := range a.decoders {
 		t, z, _, d := v.dec.Decode(authID)
 		if z != crc32.ChecksumIEEE(d[:12]) {
@@ -57,7 +56,7 @@ func (a *AuthIDLinearMatcherWithReplayFilter) Match(authID [16]byte) (*Account, 
 			continue
 		}
 
-		if a.timestampCheck && math.Abs(math.Abs(float64(t))-float64(time.Now().Unix())) > 120 {
+		if math.Abs(math.Abs(float64(t))-float64(time.Now().Unix())) > 120 {
 			continue
 		}
 
@@ -70,10 +69,10 @@ func (a *AuthIDLinearMatcherWithReplayFilter) Match(authID [16]byte) (*Account, 
 	return nil, ErrNotFound
 }
 
-func NewAuthIDLinearMatcher(timestampCheck bool) *AuthIDLinearMatcher {
-	return &AuthIDLinearMatcher{make(map[string]*AuthIDDecoderItem), timestampCheck}
+func NewAuthIDLinearMatcher() AuthIDMatcher {
+	return &AuthIDLinearMatcher{make(map[string]*AuthIDDecoderItem)}
 }
 
-func NewAuthIDLinearMatcherWithReplayFilter(timestampCheck bool) *AuthIDLinearMatcherWithReplayFilter {
-	return &AuthIDLinearMatcherWithReplayFilter{AuthIDLinearMatcher{make(map[string]*AuthIDDecoderItem), timestampCheck}, antireplay.NewReplayFilter(120)}
+func NewAuthIDLinearMatcherWithAntiReplay() AuthIDMatcher {
+	return &AuthIDLinearMatcherWithAntiReplay{AuthIDLinearMatcher{make(map[string]*AuthIDDecoderItem)}, antireplay.NewReplayFilter(120)}
 }

@@ -23,10 +23,7 @@
             "listen": "127.0.0.1",
             "port": 19198,
             "tcpFastOpen": true,
-            "antiReplay": {
-                "timestampCheck": true,
-                "replayFilter": true
-            },
+            "antiReplay": true,
             "servers": [
                 {
                     "target": "[2001:db8:::1]:10002",

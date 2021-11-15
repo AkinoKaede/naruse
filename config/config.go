@@ -16,16 +16,11 @@ type Config struct {
 }
 
 type Group struct {
-	Listen      string     `json:"listen"`
-	Port        int        `json:"port"`
-	TCPFastOpen bool       `json:"tcpFastOpen"`
-	AntiReplay  AntiReplay `json:"antiReplay"`
-	Servers     []Server   `json:"servers"`
-}
-
-type AntiReplay struct {
-	TimestampCheck bool `json:"timestampCheck"`
-	ReplayFilter   bool `json:"replayFilter"`
+	Listen      string   `json:"listen"`
+	Port        int      `json:"port"`
+	TCPFastOpen bool     `json:"tcpFastOpen"`
+	AntiReplay  bool     `json:"antiReplay"`
+	Servers     []Server `json:"servers"`
 }
 
 type Server struct {
@@ -70,16 +65,8 @@ func (g *Group) Build() (*dispatcher.Dispatcher, error) {
 		return nil, err
 	}
 
-	var matcher vmess.AuthIDMatcher
-
-	if g.AntiReplay.ReplayFilter {
-		matcher = vmess.NewAuthIDLinearMatcherWithReplayFilter(true)
-	} else {
-		matcher = vmess.NewAuthIDLinearMatcher(g.AntiReplay.TimestampCheck)
-	}
-
 	validator := &vmess.Validator{
-		AuthIDMatcher: matcher,
+		AuthIDMatcher: vmess.NewAuthIDMatchers[g.AntiReplay](),
 	}
 
 	for _, account := range accounts {
