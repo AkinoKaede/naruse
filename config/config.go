@@ -25,6 +25,7 @@ type Group struct {
 
 type AntiReplay struct {
 	TimestampCheck bool `json:"timestampCheck"`
+	ReplayFilter   bool `json:"replayFilter"`
 }
 
 type Server struct {
@@ -69,8 +70,16 @@ func (g *Group) Build() (*dispatcher.Dispatcher, error) {
 		return nil, err
 	}
 
+	var matcher vmess.AuthIDMatcher
+
+	if g.AntiReplay.ReplayFilter {
+		matcher = vmess.NewAuthIDLinearMatcherWithReplayFilter(true)
+	} else {
+		matcher = vmess.NewAuthIDLinearMatcher(g.AntiReplay.TimestampCheck)
+	}
+
 	validator := &vmess.Validator{
-		AuthIDMatcher: vmess.NewAuthIDLinearMatcher(g.AntiReplay.TimestampCheck),
+		AuthIDMatcher: matcher,
 	}
 
 	for _, account := range accounts {

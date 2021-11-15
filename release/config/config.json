@@ -24,7 +24,8 @@
             "port": 19198,
             "tcpFastOpen": true,
             "antiReplay": {
-                "timestampCheck": true
+                "timestampCheck": true,
+                "replayFilter": true
             },
             "servers": [
                 {
