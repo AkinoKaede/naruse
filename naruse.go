@@ -1,7 +1,7 @@
 package naruse
 
 const (
-	version = "0.1.0"
+	version = "0.1.1"
 	usage   = "A relay for VMess."
 )
 
