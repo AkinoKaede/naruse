@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/database64128/tfo-go v1.0.0
 	github.com/urfave/cli/v2 v2.3.0
-	github.com/v2fly/v2ray-core/v4 v4.43.0
+	github.com/v2fly/v2ray-core/v4 v4.44.0
 )
 
 require (
