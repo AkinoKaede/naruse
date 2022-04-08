@@ -1,7 +1,7 @@
 package vmess
 
 import (
-	"github.com/v2fly/v2ray-core/v4/proxy/vmess/aead"
+	"github.com/v2fly/v2ray-core/v5/proxy/vmess/aead"
 )
 
 type AuthIDDecoderItem struct {

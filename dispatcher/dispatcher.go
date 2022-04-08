@@ -12,8 +12,8 @@ import (
 	"github.com/AkinoKaede/naruse/common/bytespool"
 	"github.com/AkinoKaede/naruse/vmess"
 
-	"github.com/v2fly/v2ray-core/v4/common/drain"
-	"github.com/v2fly/v2ray-core/v4/common/protocol"
+	"github.com/v2fly/v2ray-core/v5/common/drain"
+	"github.com/v2fly/v2ray-core/v5/common/protocol"
 
 	"github.com/database64128/tfo-go"
 )
