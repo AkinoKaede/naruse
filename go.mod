@@ -3,7 +3,7 @@ module github.com/AkinoKaede/naruse
 go 1.18
 
 require (
-	github.com/database64128/tfo-go v1.0.3
+	github.com/database64128/tfo-go v1.0.4
 	github.com/urfave/cli/v2 v2.10.1
 	github.com/v2fly/v2ray-core/v5 v5.0.7
 )
